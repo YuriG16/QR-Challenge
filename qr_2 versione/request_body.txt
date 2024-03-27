@@ -1,6 +1,4 @@
 {
-    "width": 350,
-    "height": 350,
     "requestUrl" : "www.google.com",
     "customDBord" : {
         "borderColor": "#0000FF",

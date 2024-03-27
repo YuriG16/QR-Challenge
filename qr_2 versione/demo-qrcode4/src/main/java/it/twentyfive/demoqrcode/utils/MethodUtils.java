@@ -24,6 +24,11 @@ public class MethodUtils {
 
     public static byte[] generateQrCodeImage(CustomQrRequest qrCode) throws WriterException, IOException {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        if((qrCode.getWidth()==0||qrCode.getHeight()==0)||qrCode.getWidth()!=qrCode.getHeight()){
+            qrCode.setWidth(350);
+            qrCode.setHeight(350);
+        }
+        
         BitMatrix bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
         Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
         Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
