@@ -17,7 +17,7 @@ public class CustomQrRequest {
     private String requestUrl;
     private CustomDBord customDBord;
     private CustomColor customColor;
-    private String logoUrl;
+    private LogoUrl logoUrl;
     //private CustomDBord dBord;
     // private String logoPath;
     // private String customText;

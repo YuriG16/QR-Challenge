@@ -33,6 +33,13 @@ public class MethodUtils {
         MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(),offColor.getRGB());
         BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
 
+        if(qrCode.getLogoUrl()!=null){
+            BufferedImage whiteBox=createWhiteBox(qrImage);
+            addWhiteBox(qrImage, whiteBox);
+            BufferedImage resizedLogo= resizeImage(qrCode.getLogoUrl().getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
+            BufferedImage imgWithLogo=addLogoToCenter(qrImage, resizedLogo);
+            qrImage=imgWithLogo;
+        }
         if (qrCode.getCustomDBord() != null) {
             int top= qrCode.getCustomDBord().getBordSizeTop();
             int bottom= qrCode.getCustomDBord().getBordSizeBottom();
@@ -40,10 +47,6 @@ public class MethodUtils {
             int right =qrCode.getCustomDBord().getBordSizeRight();
             qrImage=addBorder(qrImage, left,right,top, bottom, qrCode.getCustomDBord().getBorderColor());
         }
-        if(qrCode.getLogoUrl()!=null){
-
-        }
-
 
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
@@ -65,34 +68,53 @@ public class MethodUtils {
 
             return imageWithBorder;
     }
-    public static BufferedImage addLogoToCenter(BufferedImage baseImage, BufferedImage logo, int topBorderSize, int bottomBorderSize, int leftBorderSize, int rightBorderSize) {
-        // Calcola le dimensioni effettive dell'immagine senza i bordi
-        int effectiveWidth = baseImage.getWidth() - leftBorderSize - rightBorderSize;
-        int effectiveHeight = baseImage.getHeight() - topBorderSize - bottomBorderSize;
-    
-        // Calcola le coordinate del logo
-        int logoX = (effectiveWidth - logo.getWidth()) / 2 + leftBorderSize;
-        int logoY = (effectiveHeight - logo.getHeight()) / 2 + topBorderSize;
-    
-        // Viene creata una nuova immagine con le stesse dimensioni dell'immagine di base, in cui verrà disegnato il logo.
-        BufferedImage imageWithLogo = new BufferedImage(baseImage.getWidth(), baseImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = imageWithLogo.createGraphics();
-        g.drawImage(baseImage, 0, 0, null);
-        g.drawImage(logo, logoX, logoY, null);
-        g.dispose();
-    
-        return imageWithLogo;
-    }
     public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
-        //L'immagine originale viene ridimensionata alle dimensioni desiderate utilizzando il metodo getScaledInstance, che ritorna un oggetto Image ridimensionato in base alle dimensioni specificate. Il parametro Image.SCALE_SMOOTH indica di utilizzare un algoritmo di ridimensionamento liscio.
         Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
-        //Viene creata una nuova immagine di tipo BufferedImage con le dimensioni desiderate e il tipo di immagine ARGB (Alfa, Rosso, Verde, Blu) che supporta la trasparenza.
         BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
-        //Viene ottenuto il contesto grafico (Graphics2D) per l'immagine di output appena creata.
         Graphics2D g2d = outputImage.createGraphics();
         g2d.drawImage(resultingImage, 0, 0, null);
         g2d.dispose();
         return outputImage;
     }
+
+    public static BufferedImage addLogoToCenter(BufferedImage baseImage, BufferedImage logo) {
+        BufferedImage whiteBox=createWhiteBox(baseImage);
+        BufferedImage resizedLogo=resizeImage(logo, whiteBox.getWidth(), whiteBox.getHeight());
+        int logoX = baseImage.getWidth()/2-(resizedLogo.getWidth()/2);
+        int logoY = baseImage.getHeight()/2-(resizedLogo.getHeight()/2);
+    
+        // Viene creata una nuova immagine con le stesse dimensioni dell'immagine di base, in cui verrà disegnato il logo.
+        BufferedImage imageWithLogo = new BufferedImage(baseImage.getWidth(), baseImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = imageWithLogo.createGraphics();
+        g.drawImage(baseImage, 0, 0, null);
+        g.drawImage(resizedLogo, logoX, logoY, null);
+        g.dispose();
+    
+        return imageWithLogo;
+    }
+    
+    public static BufferedImage createWhiteBox(BufferedImage img) {
+        int whiteBoxSize = (int) (Math.min(img.getWidth(), img.getHeight()) * 0.135);
+    
+        BufferedImage overlayImage = new BufferedImage(whiteBoxSize, whiteBoxSize, BufferedImage.TYPE_INT_ARGB); // Correzione qui
+        Graphics2D graphics = overlayImage.createGraphics();
+        graphics.setColor(Color.WHITE);
+        graphics.fillRect(0, 0, whiteBoxSize, whiteBoxSize); // Correzione qui
+        graphics.dispose();
+    
+        return overlayImage;
+    }
+    
+    public static void addWhiteBox(BufferedImage img, BufferedImage whiteBoxImage) {
+        BufferedImage whiteBox=createWhiteBox(img);
+        int whiteBoxX = (img.getWidth() / 2)-(whiteBox.getWidth()/2);
+        int whiteBoxY = (img.getHeight()/2) - (whiteBox.getHeight() / 2);
+    
+        Graphics2D graphics = img.createGraphics();
+        graphics.setColor(Color.WHITE);
+        graphics.fillRect(whiteBoxX, whiteBoxY, whiteBox.getWidth(), whiteBox.getHeight());
+        graphics.dispose();
+    }
+    
     
 }
