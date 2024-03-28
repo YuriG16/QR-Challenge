@@ -51,12 +51,30 @@ public class MethodUtils {
             int left= qrCode.getCustomDBord().getBordSizeLeft();
             int right =qrCode.getCustomDBord().getBordSizeRight();
             qrImage=addBorder(qrImage, left,right,top, bottom, qrCode.getCustomDBord().getBorderColor());
+            if(qrCode.getCustomDBord().getIconUrl()!=null){
+                BufferedImage iconImg=qrCode.getCustomDBord().getIconUrl().getImgByUrl();
+                int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
+                BufferedImage resizedIconImg=resizeImage(iconImg, targetWidth, bottom);
+                int iconX=left;
+                int iconY=qrImage.getHeight()-resizedIconImg.getHeight();
+                BufferedImage imageWithIcon = new BufferedImage(qrImage.getWidth(), qrImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g = imageWithIcon.createGraphics();
+                g.drawImage(qrImage, 0, 0, null);
+                g.drawImage(resizedIconImg, iconX, iconY, null);
+                g.dispose();
+                qrImage=imageWithIcon;
+            }
         }
 
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
         return pngOutputStream.toByteArray();
     }
+
+    /*public static BufferedImage drawImage(BufferedImage img, int x, int y, int wight, int height){
+        Graphics2D g = img.createGraphics();
+        g
+    }*/
 
     public static BufferedImage addBorder(BufferedImage img, int bordSizeLeft, int bordSizeRight, int bordSizeTop, int bordSizeBottom, Color borderColor) {
         int newWidth=img.getWidth() + bordSizeLeft+bordSizeRight;
@@ -67,7 +85,7 @@ public class MethodUtils {
             g.setColor(borderColor);
             g.fillRect(0, 0, imageWithBorder.getWidth(), imageWithBorder.getHeight());
             int qrX = bordSizeLeft;
-            int qrY = bordSizeBottom;
+            int qrY = bordSizeTop;
             g.drawImage(img, qrX, qrY, null);
             g.dispose();
 

@@ -18,11 +18,6 @@ public class CustomQrRequest {
     private CustomDBord customDBord;
     private CustomColor customColor;
     private LogoUrl logoUrl;
-    //private CustomDBord dBord;
-    // private String logoPath;
-    // private String customText;
-
-    
 
 }
 
