@@ -1,0 +1,18 @@
+{
+    "requestUrl" : "www.google.com",
+    "customDBord" : {
+        "borderColor": "#0000FF",
+        "bordSizeTop": 20,
+        "bordSizeRight": 20,
+        "bordSizeBottom": 20,
+        "bordSizeLeft": 20
+    },
+    "customColor" : {
+        "onColor": "#0000FF",
+        "offColor": "#FFC0CB"
+    },
+    "logoUrl":{
+        "url":"https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/LEGO_logo.svg/512px-LEGO_logo.svg.png"
+    }
+
+}
