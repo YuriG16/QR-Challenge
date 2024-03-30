@@ -1,5 +1,4 @@
 package it.twentyfive.demoqrcode.model;
-import java.awt.Color;
 import lombok.Data;
 
 @Data

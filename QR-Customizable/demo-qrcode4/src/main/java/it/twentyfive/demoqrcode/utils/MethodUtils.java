@@ -11,14 +11,12 @@ import com.google.zxing.client.j2se.MatrixToImageConfig;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-
-import it.twentyfive.demoqrcode.model.CustomBord;
-import it.twentyfive.demoqrcode.model.CustomColor;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -67,9 +65,9 @@ public class MethodUtils {
                 g.dispose();
                 qrImage=imageWithIcon;
             }
-            if (qrCode.getText()!=null) {
-                CustomText t = qrCode.getText();
-                BufferedImage b=addTextToBorder(qrImage, t, top);
+            if (qrCode.getCustomText()!=null) {
+                CustomText t = qrCode.getCustomText();
+                BufferedImage b=addTextToBorder(qrImage, t, bottom);
                 qrImage=b;
             }
 
@@ -80,10 +78,6 @@ public class MethodUtils {
         return pngOutputStream.toByteArray();
     }
 
-    /*public static BufferedImage drawImage(BufferedImage img, int x, int y, int wight, int height){
-        Graphics2D g = img.createGraphics();
-        g
-    }*/
 
     public static BufferedImage addBorder(BufferedImage img, int bordSizeLeft, int bordSizeRight, int bordSizeTop, int bordSizeBottom, Color borderColor) {
         int newWidth=img.getWidth() + bordSizeLeft+bordSizeRight;
@@ -101,31 +95,23 @@ public class MethodUtils {
             return imageWithBorder;
     }
 
-    // public static void addTextToBorder (Graphics2D g, int bordSizeLeft, int bordSizeTop, int bordSizeRight, int bordSizeBottom, CustomText t ) {
-    //     g.setColor(t.getFontColor());
-    //     g.setFont(new Font("Arial", Font.PLAIN, t.getFontSize()));
-    //     int textX = bordSizeLeft; // Posizione x del testo
-    //     int textY = t.getFontSize() + bordSizeTop; // Posizione y del testo
-    //     g.drawString(t.getText(), textX, textY);
-    // }
     
     public static BufferedImage addTextToBorder(BufferedImage img, CustomText t, int borderWidth) {
-        BufferedImage imageWithText = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = imageWithText.createGraphics();
-        g.drawImage(img, 0, 0, null);
-    
+        Graphics2D g = img.createGraphics();
         g.setColor(t.getFontColor());
-        g.setFont(new Font("Arial", Font.PLAIN, t.getFontSize()));
-
-        int textWidth = g.getFontMetrics().stringWidth(t.getText());
-        int textX = (img.getWidth() - textWidth) / 2;
-        int textY = borderWidth + t.getFontSize();
-    
-        g.drawString(t.getText(), textX, textY);
+        Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
+        g.setFont(font);
+        FontMetrics metrics = g.getFontMetrics(font);
+        int textWidth = metrics.stringWidth(t.getText());                    
+        int charHeight = metrics.getAscent() - metrics.getDescent();                       
+        int x = (img.getWidth() - textWidth) / 2;
+        int y = img.getHeight()-borderWidth/2+(charHeight/2);
+        g.drawString(t.getText(), x, y);
         g.dispose();
     
-        return imageWithText;
+        return img;
     }
+
     
     public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
         Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);

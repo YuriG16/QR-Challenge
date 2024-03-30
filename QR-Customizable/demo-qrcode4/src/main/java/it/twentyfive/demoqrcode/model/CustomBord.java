@@ -16,7 +16,6 @@ public class CustomBord {
     private int bordSizeRight;
     private int bordSizeBottom;
     private int bordSizeLeft;
-    //private CustomText text;
     private LogoUrl iconUrl;
     
     public Color getBorderColor(){

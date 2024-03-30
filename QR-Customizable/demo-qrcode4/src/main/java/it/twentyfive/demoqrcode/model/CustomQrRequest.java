@@ -15,7 +15,7 @@ public class CustomQrRequest {
     private int height;
     private String requestUrl;
     private CustomBord customBord;
-    private CustomText text;
+    private CustomText customText;
     private CustomColor customColor;
     private LogoUrl logoUrl;
 
