@@ -1,6 +1,5 @@
 package it.twentyfive.demoqrcode.model;
 
-import java.awt.Color;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +14,7 @@ public class CustomQrRequest {
     private int width;
     private int height;
     private String requestUrl;
-    private CustomDBord customDBord;
+    private CustomBord customBord;
     private CustomColor customColor;
     private LogoUrl logoUrl;
 

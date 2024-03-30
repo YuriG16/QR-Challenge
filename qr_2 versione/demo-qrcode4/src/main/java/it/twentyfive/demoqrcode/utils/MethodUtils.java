@@ -12,10 +12,13 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import it.twentyfive.demoqrcode.model.CustomBord;
 import it.twentyfive.demoqrcode.model.CustomColor;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
+import it.twentyfive.demoqrcode.model.CustomText;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -45,14 +48,14 @@ public class MethodUtils {
             BufferedImage imgWithLogo=addLogoToCenter(qrImage, resizedLogo);
             qrImage=imgWithLogo;
         }
-        if (qrCode.getCustomDBord() != null) {
-            int top= qrCode.getCustomDBord().getBordSizeTop();
-            int bottom= qrCode.getCustomDBord().getBordSizeBottom();
-            int left= qrCode.getCustomDBord().getBordSizeLeft();
-            int right =qrCode.getCustomDBord().getBordSizeRight();
-            qrImage=addBorder(qrImage, left,right,top, bottom, qrCode.getCustomDBord().getBorderColor());
-            if(qrCode.getCustomDBord().getIconUrl()!=null){
-                BufferedImage iconImg=qrCode.getCustomDBord().getIconUrl().getImgByUrl();
+        if (qrCode.getCustomBord() != null) {
+            int top= qrCode.getCustomBord().getBordSizeTop();
+            int bottom= qrCode.getCustomBord().getBordSizeBottom();
+            int left= qrCode.getCustomBord().getBordSizeLeft();
+            int right =qrCode.getCustomBord().getBordSizeRight();
+            qrImage=addBorder(qrImage, left,right,top, bottom, qrCode.getCustomBord().getBorderColor());
+            if(qrCode.getCustomBord().getIconUrl()!=null){
+                BufferedImage iconImg=qrCode.getCustomBord().getIconUrl().getImgByUrl();
                 int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
                 BufferedImage resizedIconImg=resizeImage(iconImg, targetWidth, bottom);
                 int iconX=left;
@@ -64,6 +67,11 @@ public class MethodUtils {
                 g.dispose();
                 qrImage=imageWithIcon;
             }
+            if (qrCode.getCustomBord().getText()!=null) {
+                CustomText t = qrCode.getCustomBord().getText();
+                qrImage=addTextToBorder(qrImage, t, top);
+            }
+
         }
 
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
@@ -91,6 +99,33 @@ public class MethodUtils {
 
             return imageWithBorder;
     }
+
+    // public static void addTextToBorder (Graphics2D g, int bordSizeLeft, int bordSizeTop, int bordSizeRight, int bordSizeBottom, CustomText t ) {
+    //     g.setColor(t.getFontColor());
+    //     g.setFont(new Font("Arial", Font.PLAIN, t.getFontSize()));
+    //     int textX = bordSizeLeft; // Posizione x del testo
+    //     int textY = t.getFontSize() + bordSizeTop; // Posizione y del testo
+    //     g.drawString(t.getText(), textX, textY);
+    // }
+    
+    public static BufferedImage addTextToBorder(BufferedImage img, CustomText t, int borderWidth) {
+        BufferedImage imageWithText = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = imageWithText.createGraphics();
+        g.drawImage(img, 0, 0, null);
+    
+        g.setColor(t.getFontColor());
+        g.setFont(new Font("Arial", Font.PLAIN, t.getFontSize()));
+
+        int textWidth = g.getFontMetrics().stringWidth(t.getText());
+        int textX = (img.getWidth() - textWidth) / 2;
+        int textY = borderWidth + t.getFontSize();
+    
+        g.drawString(t.getText(), textX, textY);
+        g.dispose();
+    
+        return imageWithText;
+    }
+    
     public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
         Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
         BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);

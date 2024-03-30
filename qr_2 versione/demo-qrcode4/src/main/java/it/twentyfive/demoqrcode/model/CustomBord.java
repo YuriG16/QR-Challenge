@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CustomDBord {
+public class CustomBord {
 
     private String borderColor;
     private int bordSizeTop;
     private int bordSizeRight;
     private int bordSizeBottom;
     private int bordSizeLeft;
-    private String text;
+    private CustomText text;
     private LogoUrl iconUrl;
     
     public Color getBorderColor(){
