@@ -1,0 +1,223 @@
+package it.twentyfive.demoqrcode.utils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+
+import javax.imageio.ImageIO;
+
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageConfig;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import it.twentyfive.demoqrcode.model.CustomQrRequest;
+import it.twentyfive.demoqrcode.model.CustomText;
+import it.twentyfive.demoqrcode.utils.Exceptions.InvalidColorException;
+import it.twentyfive.demoqrcode.utils.Exceptions.InvalidNumberException;
+import it.twentyfive.demoqrcode.utils.Exceptions.InvalidURLException;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+public class MethodUtils {
+
+
+    public static byte[] generateQrCodeImage(CustomQrRequest qrCode) throws WriterException, IOException, RuntimeException {
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        if (qrCode.getRequestUrl() == null || qrCode.getRequestUrl().isEmpty()) {
+            throw new InvalidURLException("URL is empty");
+        } else if (isValidUrl(qrCode.getRequestUrl()) == false) {
+            throw new InvalidURLException("Invalid URL format");
+        }
+
+        int minWidth = 100;
+        int maxWidth = 500;
+        int minHeight = 100;
+        int maxHeight = 500;
+
+        int width = qrCode.getWidth();
+        int height = qrCode.getHeight();
+
+        if ((width == 0 || height == 0) || width != height || 
+            width < minWidth || width > maxWidth || 
+            height < minHeight || height > maxHeight) {
+            qrCode.setWidth(350);
+            qrCode.setHeight(350);
+            //throw new InvalidNumberException("Invalid dimensions. Dimensions should be within the range " + minWidth + "x" + minHeight + " to " + maxWidth + "x" + maxHeight);
+        }
+        
+        BitMatrix bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
+        Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
+        Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
+
+        if (onColor == null || offColor == null || onColor.equals(offColor) || !isValidColor(qrCode.getCustomColor().getOnColor()) || !isValidColor(qrCode.getCustomColor().getOffColor())) {
+          
+            onColor = (onColor == null || !isValidColor(qrCode.getCustomColor().getOnColor())) ? Color.WHITE : onColor;
+            offColor = (offColor == null || !isValidColor(qrCode.getCustomColor().getOffColor())) ? Color.BLACK : offColor;
+            
+            
+            //throw new InvalidColorException("Invalid color codes provided, defaulting to black and white");
+        }
+        
+        MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(),offColor.getRGB());
+        BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
+
+        if(qrCode.getLogoUrl()!=null){
+            BufferedImage whiteBox=createWhiteBox(qrImage);
+            addWhiteBox(qrImage, whiteBox);
+            BufferedImage resizedLogo= resizeImage(qrCode.getLogoUrl().getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
+            BufferedImage imgWithLogo=addLogoToCenter(qrImage, resizedLogo);
+            qrImage=imgWithLogo;
+        }
+        
+        if (qrCode.getCustomBord() != null) {
+            int top= qrCode.getCustomBord().getBordSizeTop();
+            int bottom= qrCode.getCustomBord().getBordSizeBottom();
+            int left= qrCode.getCustomBord().getBordSizeLeft();
+            int right =qrCode.getCustomBord().getBordSizeRight();
+            qrImage=addBorder(qrImage, left,right,top, bottom, qrCode.getCustomBord().getBorderColor());
+            if(qrCode.getCustomBord().getIconUrl()!=null){
+                BufferedImage iconImg=qrCode.getCustomBord().getIconUrl().getImgByUrl();
+                int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
+                BufferedImage resizedIconImg=resizeImage(iconImg, targetWidth, bottom);
+                int iconX=left;
+                int iconY=qrImage.getHeight()-resizedIconImg.getHeight();
+                BufferedImage imageWithIcon = new BufferedImage(qrImage.getWidth(), qrImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g = imageWithIcon.createGraphics();
+                g.drawImage(qrImage, 0, 0, null);
+                g.drawImage(resizedIconImg, iconX, iconY, null);
+                g.dispose();
+                qrImage=imageWithIcon;
+            }
+            if (qrCode.getCustomText()!=null) {
+                CustomText t = qrCode.getCustomText();
+                BufferedImage b=addTextToBorder(qrImage, t, bottom);
+                qrImage=b;
+            }
+
+        }
+
+        ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(qrImage, "PNG", pngOutputStream);
+        return pngOutputStream.toByteArray();
+    }
+
+    public static BufferedImage addBorder(BufferedImage img, int bordSizeLeft, int bordSizeRight, int bordSizeTop, int bordSizeBottom, Color borderColor) {
+        int newWidth=img.getWidth() + bordSizeLeft+bordSizeRight;
+        int newHeight=img.getHeight() + bordSizeTop+bordSizeBottom;
+        BufferedImage imageWithBorder = new BufferedImage(newWidth,newHeight, BufferedImage.TYPE_INT_ARGB);
+
+            Graphics2D g = imageWithBorder.createGraphics();
+            g.setColor(borderColor);
+            g.fillRect(0, 0, imageWithBorder.getWidth(), imageWithBorder.getHeight());
+            int qrX = bordSizeLeft;
+            int qrY = bordSizeTop;
+            g.drawImage(img, qrX, qrY, null);
+            g.dispose();
+
+            return imageWithBorder;
+    }
+
+    
+    public static BufferedImage addTextToBorder(BufferedImage img, CustomText t, int borderWidth) {
+        Graphics2D g = img.createGraphics();
+        g.setColor(t.getFontColor());
+        Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
+        g.setFont(font);
+        FontMetrics metrics = g.getFontMetrics(font);
+        int textWidth = metrics.stringWidth(t.getText());                    
+        int charHeight = metrics.getAscent() - metrics.getDescent();                       
+        int x = (img.getWidth() - textWidth) / 2;
+        int y = img.getHeight()-borderWidth/2+(charHeight/2);
+        g.drawString(t.getText(), x, y);
+        g.dispose();
+    
+        return img;
+    }
+
+    
+    public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
+        Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+        BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = outputImage.createGraphics();
+        g2d.drawImage(resultingImage, 0, 0, null);
+        g2d.dispose();
+        return outputImage;
+    }
+
+    public static BufferedImage addLogoToCenter(BufferedImage baseImage, BufferedImage logo) {
+        BufferedImage whiteBox=createWhiteBox(baseImage);
+        BufferedImage resizedLogo=resizeImage(logo, whiteBox.getWidth(), whiteBox.getHeight());
+        int logoX = baseImage.getWidth()/2-(resizedLogo.getWidth()/2);
+        int logoY = baseImage.getHeight()/2-(resizedLogo.getHeight()/2);
+    
+        // Viene creata una nuova immagine con le stesse dimensioni dell'immagine di base, in cui verrà disegnato il logo.
+        BufferedImage imageWithLogo = new BufferedImage(baseImage.getWidth(), baseImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = imageWithLogo.createGraphics();
+        g.drawImage(baseImage, 0, 0, null);
+        g.drawImage(resizedLogo, logoX, logoY, null);
+        g.dispose();
+    
+        return imageWithLogo;
+    }
+    
+    public static BufferedImage createWhiteBox(BufferedImage img) {
+        int whiteBoxSize = (int) (Math.min(img.getWidth(), img.getHeight()) * 0.135);
+    
+        BufferedImage overlayImage = new BufferedImage(whiteBoxSize, whiteBoxSize, BufferedImage.TYPE_INT_ARGB); // Correzione qui
+        Graphics2D graphics = overlayImage.createGraphics();
+        graphics.setColor(Color.WHITE);
+        graphics.fillRect(0, 0, whiteBoxSize, whiteBoxSize); // Correzione qui
+        graphics.dispose();
+    
+        return overlayImage;
+    }
+    
+    public static void addWhiteBox(BufferedImage img, BufferedImage whiteBoxImage) {
+        BufferedImage whiteBox=createWhiteBox(img);
+        int whiteBoxX = (img.getWidth() / 2)-(whiteBox.getWidth()/2);
+        int whiteBoxY = (img.getHeight()/2) - (whiteBox.getHeight() / 2);
+    
+        Graphics2D graphics = img.createGraphics();
+        graphics.setColor(Color.WHITE);
+        graphics.fillRect(whiteBoxX, whiteBoxY, whiteBox.getWidth(), whiteBox.getHeight());
+        graphics.dispose();
+    }
+
+    public static boolean isValidUrl(String url) {
+        String regex = "^(http(s)?:\\/\\/)?(www\\.)?[a-zA-Z0-9-]+(\\.[a-zA-Z]{2,})+(\\/\\S*)?$";
+        if (!url.matches(regex)){
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isValidColor(String color) {
+        try {
+            Color.decode(color);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public static ResponseEntity handleRuntimeException(RuntimeException e) {
+        if (e instanceof InvalidURLException || e instanceof InvalidNumberException || e instanceof InvalidColorException){ // || e instanceof BorderColorNotPresent || e instanceof UrlNotPresentException || e instanceof TopOrBottomBorderNotSpecifiedException) {
+            String errorMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+        } else {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        }
+    }
+    
+    
+}
