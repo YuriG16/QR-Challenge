@@ -16,6 +16,8 @@ import com.google.zxing.client.j2se.MatrixToImageConfig;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+
+import it.twentyfive.demoqrcode.model.CustomColor;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
 import it.twentyfive.demoqrcode.utils.Exceptions.InvalidColorException;
@@ -28,6 +30,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+
 public class MethodUtils {
 
 
@@ -52,25 +55,19 @@ public class MethodUtils {
             height < minHeight || height > maxHeight) {
             qrCode.setWidth(350);
             qrCode.setHeight(350);
-            //throw new InvalidNumberException("Invalid dimensions. Dimensions should be within the range " + minWidth + "x" + minHeight + " to " + maxWidth + "x" + maxHeight);
         }
-        
+
         BitMatrix bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
-        Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
-        Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
-
-        if (onColor == null || offColor == null || onColor.equals(offColor) || !isValidColor(qrCode.getCustomColor().getOnColor()) || !isValidColor(qrCode.getCustomColor().getOffColor())) {
-          
-            onColor = (onColor == null || !isValidColor(qrCode.getCustomColor().getOnColor())) ? Color.WHITE : onColor;
-            offColor = (offColor == null || !isValidColor(qrCode.getCustomColor().getOffColor())) ? Color.BLACK : offColor;
-            
-            
-            //throw new InvalidColorException("Invalid color codes provided, defaulting to black and white");
-        }
         
-        MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(),offColor.getRGB());
-        BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
 
+        CustomColor customColor = qrCode.getCustomColor();
+        Color onColor = (customColor != null && customColor.getOnColor() != null && !customColor.getOnColor().isEmpty()) ? Color.decode(customColor.getOnColor()) : Color.BLACK;
+        Color offColor = (customColor != null && customColor.getOffColor() != null && !customColor.getOffColor().isEmpty()) ? Color.decode(customColor.getOffColor()) : Color.WHITE;
+
+        MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(), offColor.getRGB());
+        BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
+        
+        
         if(qrCode.getLogoUrl()!=null){
             BufferedImage whiteBox=createWhiteBox(qrImage);
             addWhiteBox(qrImage, whiteBox);
@@ -211,7 +208,7 @@ public class MethodUtils {
     }
 
     public static ResponseEntity handleRuntimeException(RuntimeException e) {
-        if (e instanceof InvalidURLException || e instanceof InvalidNumberException || e instanceof InvalidColorException){ // || e instanceof BorderColorNotPresent || e instanceof UrlNotPresentException || e instanceof TopOrBottomBorderNotSpecifiedException) {
+        if (e instanceof InvalidURLException || e instanceof InvalidNumberException || e instanceof InvalidColorException){ 
             String errorMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         } else {
