@@ -31,13 +31,22 @@ public class MethodUtils {
         }
         
         BitMatrix bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
-        Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
-        Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
         
-
-        //MatrixToImageConfig con = new MatrixToImageConfig(0xFFFFFFFF, 0xFF000000);
-        MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(),offColor.getRGB());
-        BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
+        BufferedImage qrImage=null;
+        
+        if (qrCode.getCustomColor() != null&&qrCode.getCustomColor().getOnColor()!=null&&qrCode.getCustomColor().getOffColor()!=null) {
+            Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
+            Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
+            MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(), offColor.getRGB());
+            qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
+        } else {
+            MatrixToImageConfig config = new MatrixToImageConfig(0xFF000000, 0xFFFFFFFF);
+            BufferedImage qr = MatrixToImageWriter.toBufferedImage(bitMatrix, config);
+            qrImage = qr;
+        }
+        
+        
+        
 
         if(qrCode.getLogoUrl()!=null){
             BufferedImage whiteBox=createWhiteBox(qrImage);
