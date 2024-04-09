@@ -6,6 +6,9 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageConfig;
@@ -14,6 +17,9 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
+import it.twentyfive.demoqrcode.utils.exceptions.InvalidColorException;
+import it.twentyfive.demoqrcode.utils.exceptions.InvalidNumberException;
+import it.twentyfive.demoqrcode.utils.exceptions.InvalidURLException;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -26,6 +32,11 @@ public class MethodUtils {
 
     public static byte[] generateQrCodeImage(CustomQrRequest qrCode) throws WriterException, IOException {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        if (qrCode.getRequestUrl() == null || qrCode.getRequestUrl().isEmpty()) {
+            throw new InvalidURLException("URL is empty");
+        } else if (isValidUrl(qrCode.getRequestUrl()) == false) {
+            throw new InvalidURLException("Invalid URL format");
+        }
         if((qrCode.getWidth()==0||qrCode.getHeight()==0)||qrCode.getWidth()!=qrCode.getHeight()){
             qrCode.setWidth(350);
             qrCode.setHeight(350);
@@ -56,10 +67,8 @@ public class MethodUtils {
             
         }
         if (qrCode.getCustomBord() != null) {
-            System.out.println(qrCode.getCustomBord().toString());
-            System.out.println("inizio");
+            
             ArrayList<Integer> listaBordi= qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
-            System.out.println(qrCode.getCustomBord().toString());
             int top= listaBordi.get(0);
             int right=listaBordi.get(1);
             int bottom= listaBordi.get(2);
@@ -68,7 +77,7 @@ public class MethodUtils {
             
 
             if(qrCode.getCustomBord().getIconUrl()!=null){
-                System.out.println("meta");
+                
                 BufferedImage iconImg=qrCode.getCustomBord().getIconUrl().getImgByUrl();
                 int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
                 BufferedImage resizedIconImg=resizeImage(iconImg, targetWidth, bottom);
@@ -89,10 +98,19 @@ public class MethodUtils {
 
         }
         
-        System.out.println("fine");
+        
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
         return pngOutputStream.toByteArray();
+    }
+
+
+    public static boolean isValidUrl(String url) {
+        String regex = "^(http(s)?:\\/\\/)?(www\\.)?[a-zA-Z0-9-]+(\\.[a-zA-Z]{2,})+(\\/\\S*)?$";
+        if (!url.matches(regex)){
+            return false;
+        }
+        return true;
     }
 
 
@@ -176,6 +194,14 @@ public class MethodUtils {
         graphics.setColor(Color.WHITE);
         graphics.fillRect(whiteBoxX, whiteBoxY, whiteBox.getWidth(), whiteBox.getHeight());
         graphics.dispose();
+    }
+    public static ResponseEntity handleRuntimeException(RuntimeException e) {
+        if (e instanceof InvalidURLException || e instanceof InvalidNumberException || e instanceof InvalidColorException){ 
+            String errorMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+        } else {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        }
     }
     
     

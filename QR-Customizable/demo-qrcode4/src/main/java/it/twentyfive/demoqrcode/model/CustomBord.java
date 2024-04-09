@@ -36,7 +36,7 @@ public class CustomBord {
             this.bordSizeRight = bordSizeRight;
             this.bordSizeBottom = bordSizeBottom;
             this.bordSizeLeft = bordSizeLeft;
-            this.bordSizes = bordSizes; // Imposta il valore di bordSizes
+            this.bordSizes = bordSizes; 
             lista.add(bordSizeTop);
             lista.add(bordSizeRight);
             lista.add(bordSizeBottom);
