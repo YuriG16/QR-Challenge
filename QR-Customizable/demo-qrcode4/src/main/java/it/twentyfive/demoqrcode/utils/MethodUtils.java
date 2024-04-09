@@ -2,6 +2,7 @@ package it.twentyfive.demoqrcode.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
@@ -34,18 +35,16 @@ public class MethodUtils {
         
         BufferedImage qrImage=null;
         
-        if (qrCode.getCustomColor() != null&&qrCode.getCustomColor().getOnColor()!=null&&qrCode.getCustomColor().getOffColor()!=null) {
+        if (qrCode.getCustomColor()!=null&&qrCode.getCustomColor().getOnColor()!=null&&qrCode.getCustomColor().getOffColor()!=null) {
             Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
             Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
             MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(), offColor.getRGB());
             qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
         } else {
             MatrixToImageConfig config = new MatrixToImageConfig(0xFF000000, 0xFFFFFFFF);
-            BufferedImage qr = MatrixToImageWriter.toBufferedImage(bitMatrix, config);
-            qrImage = qr;
+            BufferedImage qr=MatrixToImageWriter.toBufferedImage(bitMatrix, config);
+            qrImage=qr;
         }
-        
-        
         
 
         if(qrCode.getLogoUrl()!=null){
@@ -54,14 +53,22 @@ public class MethodUtils {
             BufferedImage resizedLogo= resizeImage(qrCode.getLogoUrl().getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
             BufferedImage imgWithLogo=addLogoToCenter(qrImage, resizedLogo);
             qrImage=imgWithLogo;
+            
         }
         if (qrCode.getCustomBord() != null) {
-            int top= qrCode.getCustomBord().getBordSizeTop();
-            int bottom= qrCode.getCustomBord().getBordSizeBottom();
-            int left= qrCode.getCustomBord().getBordSizeLeft();
-            int right =qrCode.getCustomBord().getBordSizeRight();
-            qrImage=addBorder(qrImage, left,right,top, bottom, qrCode.getCustomBord().getBorderColor());
+            System.out.println(qrCode.getCustomBord().toString());
+            System.out.println("inizio");
+            ArrayList<Integer> listaBordi= qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
+            System.out.println(qrCode.getCustomBord().toString());
+            int top= listaBordi.get(0);
+            int right=listaBordi.get(1);
+            int bottom= listaBordi.get(2);
+            int left= listaBordi.get(3);
+            qrImage=addBorder(qrImage, top,right,bottom, left, qrCode.getCustomBord().getBorderColor());
+            
+
             if(qrCode.getCustomBord().getIconUrl()!=null){
+                System.out.println("meta");
                 BufferedImage iconImg=qrCode.getCustomBord().getIconUrl().getImgByUrl();
                 int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
                 BufferedImage resizedIconImg=resizeImage(iconImg, targetWidth, bottom);
@@ -81,7 +88,8 @@ public class MethodUtils {
             }
 
         }
-
+        
+        System.out.println("fine");
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
         return pngOutputStream.toByteArray();
