@@ -8,6 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.google.zxing.WriterException;
+
+import java.io.IOException;
 import java.util.Base64;
 
 @RestController
@@ -15,7 +19,7 @@ public class QrCodeController {
 
 
     @PostMapping("/generate")
-    public ResponseEntity<ResponseImage> downloadQrCodeBase64(@RequestBody CustomQrRequest request) {
+    public ResponseEntity downloadQrCodeBase64(@RequestBody CustomQrRequest request) throws WriterException, IOException, RuntimeException {
         try {
             byte[] bytes = MethodUtils.generateQrCodeImage(request);
             String base64 = Base64.getEncoder().encodeToString(bytes);
@@ -23,8 +27,9 @@ public class QrCodeController {
             ResponseImage response = new ResponseImage();
             response.setImageBase64(base64);
             return ResponseEntity.status(HttpStatus.OK).body(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    
+        } catch (RuntimeException e) {
+            return MethodUtils.handleRuntimeException(e);
         }
     }
 }
