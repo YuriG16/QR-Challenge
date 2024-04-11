@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CustomBord {
 
-    private String borderColor;
+    private String borderColor; //
     private String bordSizes;
     private LogoUrl iconUrl;
     private int bordSizeTop;
@@ -20,7 +20,7 @@ public class CustomBord {
     private int bordSizeBottom;
     private int bordSizeLeft;
 
-    public Color getBorderColor(){
+    public Color getBorderColorS(){
         return Color.decode(borderColor);
     }
     public ArrayList<Integer> setBordSizes(String bordSizes) {

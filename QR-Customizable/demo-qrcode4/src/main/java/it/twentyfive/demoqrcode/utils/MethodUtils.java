@@ -58,7 +58,7 @@ public class MethodUtils {
         }
         
 
-        if(qrCode.getLogoUrl()!=null){
+        if(qrCode.getLogoUrl()!=null&&qrCode.getLogoUrl().getUrl()!=null&&!qrCode.getLogoUrl().getUrl().isEmpty()){
             BufferedImage whiteBox=createWhiteBox(qrImage);
             addWhiteBox(qrImage, whiteBox);
             BufferedImage resizedLogo= resizeImage(qrCode.getLogoUrl().getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
@@ -66,17 +66,24 @@ public class MethodUtils {
             qrImage=imgWithLogo;
             
         }
-        if (qrCode.getCustomBord() != null) {
+
+        if (qrCode.getCustomBord() != null
+        &&qrCode.getCustomBord().getBorderColor()!=null&&!qrCode.getCustomBord().getBorderColor().isEmpty()&&
+        qrCode.getCustomBord().getBordSizes()!=null&&!qrCode.getCustomBord().getBordSizes().isEmpty()&&
+        qrCode.getCustomBord().getBordSizeTop()!=0&&
+        qrCode.getCustomBord().getBordSizeBottom()!=0&&
+        qrCode.getCustomBord().getBordSizeLeft()!=0&&
+        qrCode.getCustomBord().getBordSizeRight()!=0) {
             
             ArrayList<Integer> listaBordi= qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
             int top= listaBordi.get(0);
             int right=listaBordi.get(1);
             int bottom= listaBordi.get(2);
             int left= listaBordi.get(3);
-            qrImage=addBorder(qrImage, top,right,bottom, left, qrCode.getCustomBord().getBorderColor());
+            qrImage=addBorder(qrImage, top,right,bottom, left, qrCode.getCustomBord().getBorderColorS());
             
 
-            if(qrCode.getCustomBord().getIconUrl()!=null){
+            if(qrCode.getCustomBord().getIconUrl()!=null&&!qrCode.getCustomBord().getIconUrl().getUrl().isEmpty()){
                 
                 BufferedImage iconImg=qrCode.getCustomBord().getIconUrl().getImgByUrl();
                 int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
@@ -90,7 +97,7 @@ public class MethodUtils {
                 g.dispose();
                 qrImage=imageWithIcon;
             }
-            if (qrCode.getCustomText()!=null) {
+            if (qrCode.getCustomText()!=null&&!qrCode.getCustomText().getText().isEmpty()) {
                 CustomText t = qrCode.getCustomText();
                 BufferedImage b=addTextToBorder(qrImage, t, bottom);
                 qrImage=b;
