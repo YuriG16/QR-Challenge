@@ -14,7 +14,6 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageConfig;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
 import it.twentyfive.demoqrcode.utils.exceptions.InvalidColorException;
@@ -31,7 +30,7 @@ public class MethodUtils {
 
 
     public static byte[] generateQrCodeImage(CustomQrRequest qrCode) throws WriterException, IOException {
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        QRCodeWriterEdited qrCodeWriter = new QRCodeWriterEdited();
         if (qrCode.getRequestUrl() == null || qrCode.getRequestUrl().isEmpty()) {
             throw new InvalidURLException("URL is empty");
         } else if (isValidUrl(qrCode.getRequestUrl()) == false) {
@@ -42,10 +41,15 @@ public class MethodUtils {
             qrCode.setHeight(350);
         }
         
-        BitMatrix bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
+        BitMatrix bitMatrix=null;
+        if(qrCode.getPadding()!=null&&!qrCode.getPadding().isEmpty()){
+            bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight(), qrCode.getPaddingInt());
+        }
+        else{
+            bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
+        }
         
         BufferedImage qrImage=null;
-        
         if (qrCode.getCustomColor()!=null&&qrCode.getCustomColor().getOnColor()!=null&&qrCode.getCustomColor().getOffColor()!=null) {
             Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
             Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
