@@ -73,11 +73,7 @@ public class MethodUtils {
 
         if (qrCode.getCustomBord() != null
         &&qrCode.getCustomBord().getBorderColor()!=null&&!qrCode.getCustomBord().getBorderColor().isEmpty()&&
-        qrCode.getCustomBord().getBordSizes()!=null&&!qrCode.getCustomBord().getBordSizes().isEmpty()&&
-        qrCode.getCustomBord().getBordSizeTop()!=0&&
-        qrCode.getCustomBord().getBordSizeBottom()!=0&&
-        qrCode.getCustomBord().getBordSizeLeft()!=0&&
-        qrCode.getCustomBord().getBordSizeRight()!=0) {
+        qrCode.getCustomBord().getBordSizes()!=null&&!qrCode.getCustomBord().getBordSizes().isEmpty()) {
             
             ArrayList<Integer> listaBordi= qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
             int top= listaBordi.get(0);
@@ -103,10 +99,29 @@ public class MethodUtils {
             }
             if (qrCode.getCustomText()!=null&&!qrCode.getCustomText().getText().isEmpty()) {
                 CustomText t = qrCode.getCustomText();
-                BufferedImage b=addTextToBorder(qrImage, t, bottom);
-                qrImage=b;
+                if(t.getPosition().equals("bottom")&&bottom!=0){
+                    if(bottom>=t.getFontSize()){
+                        BufferedImage b=addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
+                        qrImage=b;
+                    }
+                    else if(bottom<t.getFontSize()){
+                        t.setFontSize(bottom);
+                        BufferedImage b=addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());                
+                        qrImage=b;
+                    }                                            
+                }
+                if(t.getPosition().equals("top")&&bottom!=0){
+                    if(top>=t.getFontSize()){
+                        BufferedImage b=addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
+                        qrImage=b;
+                    }
+                    else if(top<t.getFontSize()){
+                        t.setFontSize(top);
+                        BufferedImage b=addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
+                        qrImage=b;
+                    }
+                }
             }
-
         }
         
         
@@ -142,7 +157,7 @@ public class MethodUtils {
     }
 
     
-    public static BufferedImage addTextToBorder(BufferedImage img, CustomText t, int borderWidth) {
+    /*public static BufferedImage addTextToBorderBottom(BufferedImage img, CustomText t, int borderWidth) {
         Graphics2D g = img.createGraphics();
         g.setColor(t.getFontColor());
         Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
@@ -152,6 +167,61 @@ public class MethodUtils {
         int charHeight = metrics.getAscent() - metrics.getDescent();                       
         int x = (img.getWidth() - textWidth) / 2;
         int y = img.getHeight()-borderWidth/2+(charHeight/2);
+        g.drawString(t.getText(), x, y);
+        g.dispose();
+    
+        return img;
+    }*/
+    public static BufferedImage addTextToBorderBottomWithOffset(BufferedImage img, CustomText t, int borderWidth, int offset) {
+        Graphics2D g = img.createGraphics();
+        g.setColor(t.getFontColor());
+        Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
+        g.setFont(font);
+        FontMetrics metrics = g.getFontMetrics(font);
+        int textWidth = metrics.stringWidth(t.getText());                    
+        int charHeight = metrics.getAscent() - metrics.getDescent();
+        int x=0;
+        if(offset>=0){
+            x = (img.getWidth() - textWidth) / 2+offset;
+        }else{
+            x = (img.getWidth() - textWidth) / 2-Math.abs(offset);
+        }                       
+        int y = img.getHeight()-borderWidth/2+(charHeight/2);
+        g.drawString(t.getText(), x, y);
+        g.dispose();
+    
+        return img;
+    }
+    /*public static BufferedImage addTextToBorderTop(BufferedImage img, CustomText t, int borderWidth) {
+        Graphics2D g = img.createGraphics();
+        g.setColor(t.getFontColor());
+        Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
+        g.setFont(font);
+        FontMetrics metrics = g.getFontMetrics(font);
+        int textWidth = metrics.stringWidth(t.getText());                    
+        int charHeight = metrics.getAscent() - metrics.getDescent();                       
+        int x = (img.getWidth() - textWidth) / 2;
+        int y = borderWidth/2+(charHeight/2);
+        g.drawString(t.getText(), x, y);
+        g.dispose();
+    
+        return img;
+    }*/
+    public static BufferedImage addTextToBorderTopWithOffset(BufferedImage img, CustomText t, int borderWidth, int offset) {
+        Graphics2D g = img.createGraphics();
+        g.setColor(t.getFontColor());
+        Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
+        g.setFont(font);
+        FontMetrics metrics = g.getFontMetrics(font);
+        int textWidth = metrics.stringWidth(t.getText());                    
+        int charHeight = metrics.getAscent() - metrics.getDescent();
+        int x=0;
+        if(offset>=0){
+            x = (img.getWidth() - textWidth) / 2+offset;
+        }else{
+            x = (img.getWidth() - textWidth) / 2-Math.abs(offset);
+        }                       
+        int y = borderWidth/2+(charHeight/2);
         g.drawString(t.getText(), x, y);
         g.dispose();
     
