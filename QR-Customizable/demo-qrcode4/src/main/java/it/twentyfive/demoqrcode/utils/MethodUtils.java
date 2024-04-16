@@ -14,7 +14,6 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageConfig;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
 import it.twentyfive.demoqrcode.utils.Exceptions.InvalidColorException;
@@ -31,7 +30,7 @@ public class MethodUtils {
 
 
     public static byte[] generateQrCodeImage(CustomQrRequest qrCode) throws WriterException, IOException {
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        QRCodeWriterEdited qrCodeWriter = new QRCodeWriterEdited();
         if (qrCode.getRequestUrl() == null || qrCode.getRequestUrl().isEmpty()) {
             throw new InvalidURLException("URL is empty");
         } else if (isValidUrl(qrCode.getRequestUrl()) == false) {
@@ -42,10 +41,15 @@ public class MethodUtils {
             qrCode.setHeight(350);
         }
         
-        BitMatrix bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
+        BitMatrix bitMatrix=null;
+        if(qrCode.getPadding()!=null&&!qrCode.getPadding().isEmpty()){
+            bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight(), qrCode.getPaddingInt());
+        }
+        else{
+            bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
+        }
         
         BufferedImage qrImage=null;
-        
         if (qrCode.getCustomColor()!=null&&qrCode.getCustomColor().getOnColor()!=null&&qrCode.getCustomColor().getOffColor()!=null) {
             Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
             Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
@@ -120,8 +124,15 @@ public class MethodUtils {
         return true;
     }
 
+    public static boolean isValidColor(String color){
+        String regex = "^#[0-9a-fA-F]{6}$";
+        if (!color.matches(regex)) {
+            return false;
+        }
+        return true;
+    }
 
-    public static BufferedImage addBorder(BufferedImage img, int bordSizeLeft, int bordSizeRight, int bordSizeTop, int bordSizeBottom, Color borderColor) {
+    public static BufferedImage addBorder(BufferedImage img, int bordSizeTop, int bordSizeRight, int bordSizeBottom, int bordSizeLeft, Color borderColor) {
         int newWidth=img.getWidth() + bordSizeLeft+bordSizeRight;
         int newHeight=img.getHeight() + bordSizeTop+bordSizeBottom;
         BufferedImage imageWithBorder = new BufferedImage(newWidth,newHeight, BufferedImage.TYPE_INT_ARGB);

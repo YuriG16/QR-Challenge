@@ -1,5 +1,6 @@
 {
     "requestUrl" : "www.lego.com",
+    "padding":"2",
     "customBord" : {
         "borderColor": "#0000FF",
 <<<<<<< HEAD
