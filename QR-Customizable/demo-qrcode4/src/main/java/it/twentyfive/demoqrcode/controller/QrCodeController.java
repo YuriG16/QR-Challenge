@@ -3,7 +3,6 @@ package it.twentyfive.demoqrcode.controller;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.ResponseImage;
 import it.twentyfive.demoqrcode.utils.MethodUtils;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,9 +14,9 @@ import com.google.zxing.WriterException;
 import java.io.IOException;
 import java.util.Base64;
 
-
 @RestController
 public class QrCodeController {
+
 
     @PostMapping("/generate")
     public ResponseEntity downloadQrCodeBase64(@RequestBody CustomQrRequest request) throws WriterException, IOException, RuntimeException {

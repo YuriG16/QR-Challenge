@@ -2,10 +2,14 @@
     "requestUrl" : "www.lego.com",
     "customBord" : {
         "borderColor": "#0000FF",
+<<<<<<< HEAD
         "bordSizeTop": 20,
         "bordSizeRight": 20,
         "bordSizeBottom": 50,
         "bordSizeLeft": 20,
+=======
+        "bordSizes": "20 30 20 20",
+>>>>>>> e3582a7e6008c53e6077bd4a88de796d5e8e59dc
         "iconUrl":{
             "url":"https://content.wepik.com/statics/22818825/preview-page3.jpg"
         }

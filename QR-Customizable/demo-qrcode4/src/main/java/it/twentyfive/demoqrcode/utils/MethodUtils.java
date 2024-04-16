@@ -2,10 +2,9 @@ package it.twentyfive.demoqrcode.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +15,6 @@ import com.google.zxing.client.j2se.MatrixToImageConfig;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-
-import it.twentyfive.demoqrcode.model.CustomColor;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
 import it.twentyfive.demoqrcode.utils.Exceptions.InvalidColorException;
@@ -30,59 +27,64 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-
 public class MethodUtils {
 
 
-    public static byte[] generateQrCodeImage(CustomQrRequest qrCode) throws WriterException, IOException, RuntimeException {
+    public static byte[] generateQrCodeImage(CustomQrRequest qrCode) throws WriterException, IOException {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         if (qrCode.getRequestUrl() == null || qrCode.getRequestUrl().isEmpty()) {
             throw new InvalidURLException("URL is empty");
         } else if (isValidUrl(qrCode.getRequestUrl()) == false) {
             throw new InvalidURLException("Invalid URL format");
         }
-
-        int minWidth = 100;
-        int maxWidth = 500;
-        int minHeight = 100;
-        int maxHeight = 500;
-
-        int width = qrCode.getWidth();
-        int height = qrCode.getHeight();
-
-        if ((width == 0 || height == 0) || width != height || 
-            width < minWidth || width > maxWidth || 
-            height < minHeight || height > maxHeight) {
+        if((qrCode.getWidth()==0||qrCode.getHeight()==0)||qrCode.getWidth()!=qrCode.getHeight()){
             qrCode.setWidth(350);
             qrCode.setHeight(350);
         }
-
+        
         BitMatrix bitMatrix = qrCodeWriter.encode(qrCode.getRequestUrl(), BarcodeFormat.QR_CODE, qrCode.getWidth(), qrCode.getHeight());
         
-
-        CustomColor customColor = qrCode.getCustomColor();
-        Color onColor = (customColor != null && customColor.getOnColor() != null && !customColor.getOnColor().isEmpty()) ? Color.decode(customColor.getOnColor()) : Color.BLACK;
-        Color offColor = (customColor != null && customColor.getOffColor() != null && !customColor.getOffColor().isEmpty()) ? Color.decode(customColor.getOffColor()) : Color.WHITE;
-
-        MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(), offColor.getRGB());
-        BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
+        BufferedImage qrImage=null;
         
+        if (qrCode.getCustomColor()!=null&&qrCode.getCustomColor().getOnColor()!=null&&qrCode.getCustomColor().getOffColor()!=null) {
+            Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
+            Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
+            MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(), offColor.getRGB());
+            qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
+        } else {
+            MatrixToImageConfig config = new MatrixToImageConfig(0xFF000000, 0xFFFFFFFF);
+            BufferedImage qr=MatrixToImageWriter.toBufferedImage(bitMatrix, config);
+            qrImage=qr;
+        }
         
-        if(qrCode.getLogoUrl()!=null){
+
+        if(qrCode.getLogoUrl()!=null&&qrCode.getLogoUrl().getUrl()!=null&&!qrCode.getLogoUrl().getUrl().isEmpty()){
             BufferedImage whiteBox=createWhiteBox(qrImage);
             addWhiteBox(qrImage, whiteBox);
             BufferedImage resizedLogo= resizeImage(qrCode.getLogoUrl().getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
             BufferedImage imgWithLogo=addLogoToCenter(qrImage, resizedLogo);
             qrImage=imgWithLogo;
+            
         }
-        
-        if (qrCode.getCustomBord() != null) {
-            int top= qrCode.getCustomBord().getBordSizeTop();
-            int bottom= qrCode.getCustomBord().getBordSizeBottom();
-            int left= qrCode.getCustomBord().getBordSizeLeft();
-            int right =qrCode.getCustomBord().getBordSizeRight();
-            qrImage=addBorder(qrImage, left,right,top, bottom, qrCode.getCustomBord().getBorderColor());
-            if(qrCode.getCustomBord().getIconUrl()!=null){
+
+        if (qrCode.getCustomBord() != null
+        &&qrCode.getCustomBord().getBorderColor()!=null&&!qrCode.getCustomBord().getBorderColor().isEmpty()&&
+        qrCode.getCustomBord().getBordSizes()!=null&&!qrCode.getCustomBord().getBordSizes().isEmpty()&&
+        qrCode.getCustomBord().getBordSizeTop()!=0&&
+        qrCode.getCustomBord().getBordSizeBottom()!=0&&
+        qrCode.getCustomBord().getBordSizeLeft()!=0&&
+        qrCode.getCustomBord().getBordSizeRight()!=0) {
+            
+            ArrayList<Integer> listaBordi= qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
+            int top= listaBordi.get(0);
+            int right=listaBordi.get(1);
+            int bottom= listaBordi.get(2);
+            int left= listaBordi.get(3);
+            qrImage=addBorder(qrImage, top,right,bottom, left, qrCode.getCustomBord().getBorderColorS());
+            
+
+            if(qrCode.getCustomBord().getIconUrl()!=null&&!qrCode.getCustomBord().getIconUrl().getUrl().isEmpty()){
+                
                 BufferedImage iconImg=qrCode.getCustomBord().getIconUrl().getImgByUrl();
                 int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
                 BufferedImage resizedIconImg=resizeImage(iconImg, targetWidth, bottom);
@@ -95,18 +97,29 @@ public class MethodUtils {
                 g.dispose();
                 qrImage=imageWithIcon;
             }
-            if (qrCode.getCustomText()!=null) {
+            if (qrCode.getCustomText()!=null&&!qrCode.getCustomText().getText().isEmpty()) {
                 CustomText t = qrCode.getCustomText();
                 BufferedImage b=addTextToBorder(qrImage, t, bottom);
                 qrImage=b;
             }
 
         }
-
+        
+        
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
         return pngOutputStream.toByteArray();
     }
+
+
+    public static boolean isValidUrl(String url) {
+        String regex = "^(http(s)?:\\/\\/)?(www\\.)?[a-zA-Z0-9-]+(\\.[a-zA-Z]{2,})+(\\/\\S*)?$";
+        if (!url.matches(regex)){
+            return false;
+        }
+        return true;
+    }
+
 
     public static BufferedImage addBorder(BufferedImage img, int bordSizeLeft, int bordSizeRight, int bordSizeTop, int bordSizeBottom, Color borderColor) {
         int newWidth=img.getWidth() + bordSizeLeft+bordSizeRight;
@@ -189,24 +202,6 @@ public class MethodUtils {
         graphics.fillRect(whiteBoxX, whiteBoxY, whiteBox.getWidth(), whiteBox.getHeight());
         graphics.dispose();
     }
-
-    public static boolean isValidUrl(String url) {
-        String regex = "^(http(s)?:\\/\\/)?(www\\.)?[a-zA-Z0-9-]+(\\.[a-zA-Z]{2,})+(\\/\\S*)?$";
-        if (!url.matches(regex)){
-            return false;
-        }
-        return true;
-    }
-
-    private static boolean isValidColor(String color) {
-        try {
-            Color.decode(color);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
     public static ResponseEntity handleRuntimeException(RuntimeException e) {
         if (e instanceof InvalidURLException || e instanceof InvalidNumberException || e instanceof InvalidColorException){ 
             String errorMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
