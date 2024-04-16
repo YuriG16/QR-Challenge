@@ -10,8 +10,10 @@
     },
     "customText":{
         "text": "SCAN ME",
-        "fontSize":30,
-        "fontColor": "#000000"
+        "fontSize":20,
+        "fontColor": "#000000",
+        "position": "bottom",
+        "offset" : 30
     },
     "customColor" : {
         "onColor": "#0000FF",
