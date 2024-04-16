@@ -124,6 +124,13 @@ public class MethodUtils {
         return true;
     }
 
+    public static boolean isValidColor(String color){
+        String regex = "^#[0-9a-fA-F]{6}$";
+        if (!color.matches(regex)) {
+            return false;
+        }
+        return true;
+    }
 
     public static BufferedImage addBorder(BufferedImage img, int bordSizeLeft, int bordSizeRight, int bordSizeTop, int bordSizeBottom, Color borderColor) {
         int newWidth=img.getWidth() + bordSizeLeft+bordSizeRight;
