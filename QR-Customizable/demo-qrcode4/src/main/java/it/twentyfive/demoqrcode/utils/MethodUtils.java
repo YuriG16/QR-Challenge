@@ -140,7 +140,7 @@ public class MethodUtils {
     }
 
 
-    public static BufferedImage addBorder(BufferedImage img, int bordSizeLeft, int bordSizeRight, int bordSizeTop, int bordSizeBottom, Color borderColor) {
+    public static BufferedImage addBorder(BufferedImage img, int bordSizeTop, int bordSizeRight, int bordSizeBottom, int bordSizeLeft, Color borderColor) {
         int newWidth=img.getWidth() + bordSizeLeft+bordSizeRight;
         int newHeight=img.getHeight() + bordSizeTop+bordSizeBottom;
         BufferedImage imageWithBorder = new BufferedImage(newWidth,newHeight, BufferedImage.TYPE_INT_ARGB);
