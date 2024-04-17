@@ -14,9 +14,12 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageConfig;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+
+import it.twentyfive.demoqrcode.model.CustomColor;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
 import it.twentyfive.demoqrcode.utils.exceptions.InvalidColorException;
+import it.twentyfive.demoqrcode.utils.exceptions.InvalidInputException;
 import it.twentyfive.demoqrcode.utils.exceptions.InvalidNumberException;
 import it.twentyfive.demoqrcode.utils.exceptions.InvalidURLException;
 
@@ -50,11 +53,19 @@ public class MethodUtils {
         }
         
         BufferedImage qrImage=null;
-        if (qrCode.getCustomColor()!=null&&qrCode.getCustomColor().getOnColor()!=null&&qrCode.getCustomColor().getOffColor()!=null) {
-            Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
-            Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
+        CustomColor myColor=qrCode.getCustomColor();
+        if (myColor!=null&&
+        myColor.getOnColor()!=null&&!myColor.getOnColor().isEmpty()&&
+        myColor.getOffColor()!=null&&!myColor.getOffColor().isEmpty()) {
+            if (!isValidColor(myColor.getOnColor())||!isValidColor(myColor.getOffColor())||myColor.getOnColor().equals(myColor.getOffColor())) {
+                throw new InvalidColorException("Color not valid");
+            } else {
+            Color onColor = Color.decode(myColor.getOnColor());
+            Color offColor = Color.decode(myColor.getOffColor());
             MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(), offColor.getRGB());
             qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
+            }
+            
         } else {
             MatrixToImageConfig config = new MatrixToImageConfig(0xFF000000, 0xFFFFFFFF);
             BufferedImage qr=MatrixToImageWriter.toBufferedImage(bitMatrix, config);
@@ -120,6 +131,9 @@ public class MethodUtils {
                         BufferedImage b=addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
                         qrImage=b;
                     }
+                }
+                if(!t.getPosition().equals("bottom")&&!t.getPosition().equals("top")){
+                    throw new InvalidInputException("The only inputs allowed are 'bottom' and 'top'");
                 }
             }
         }
@@ -284,13 +298,12 @@ public class MethodUtils {
         graphics.dispose();
     }
     public static ResponseEntity handleRuntimeException(RuntimeException e) {
-        if (e instanceof InvalidURLException || e instanceof InvalidNumberException || e instanceof InvalidColorException){ 
+        if (e instanceof InvalidInputException || e instanceof InvalidURLException || e instanceof InvalidNumberException || e instanceof InvalidColorException){ 
             String errorMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         } else {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
     }
-    
     
 }
