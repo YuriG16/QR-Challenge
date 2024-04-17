@@ -14,6 +14,8 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageConfig;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+
+import it.twentyfive.demoqrcode.model.CustomColor;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
 import it.twentyfive.demoqrcode.utils.exceptions.InvalidColorException;
@@ -50,11 +52,20 @@ public class MethodUtils {
         }
         
         BufferedImage qrImage=null;
-        if (qrCode.getCustomColor()!=null&&qrCode.getCustomColor().getOnColor()!=null&&qrCode.getCustomColor().getOffColor()!=null) {
-            Color onColor = Color.decode(qrCode.getCustomColor().getOnColor());
-            Color offColor = Color.decode(qrCode.getCustomColor().getOffColor());
+        CustomColor myColor=qrCode.getCustomColor();
+        if (myColor!=null&&
+        myColor.getOnColor()!=null&&!myColor.getOnColor().isEmpty()&&
+        myColor.getOffColor()!=null&&!myColor.getOffColor().isEmpty()) {
+            if (!isValidColor(myColor.getOnColor())||!isValidColor(myColor.getOffColor())
+            ||myColor.getOnColor().equals(myColor.getOffColor())) {
+                throw new InvalidColorException("Color not valid");
+            } else {
+            Color onColor = Color.decode(myColor.getOnColor());
+            Color offColor = Color.decode(myColor.getOffColor());
             MatrixToImageConfig matrixToImageConfig = new MatrixToImageConfig(onColor.getRGB(), offColor.getRGB());
             qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix, matrixToImageConfig);
+            }
+            
         } else {
             MatrixToImageConfig config = new MatrixToImageConfig(0xFF000000, 0xFFFFFFFF);
             BufferedImage qr=MatrixToImageWriter.toBufferedImage(bitMatrix, config);
