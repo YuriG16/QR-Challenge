@@ -34,7 +34,7 @@ public class MethodUtils {
     public static byte[] generateQrCodeImage(CustomQrRequest qrCode) throws WriterException, IOException {
         QRCodeWriterEdited qrCodeWriter = new QRCodeWriterEdited();
         if (qrCode.getRequestUrl() == null || qrCode.getRequestUrl().isEmpty()) {
-            throw new InvalidURLException("URL is empty");
+            throw new InvalidURLException("RequestURL field is empty");
         } else if (isValidUrl(qrCode.getRequestUrl()) == false) {
             throw new InvalidURLException("Invalid URL format");
         }
@@ -72,70 +72,77 @@ public class MethodUtils {
             qrImage=qr;
         }
         
-
-        if(qrCode.getLogoUrl()!=null&&qrCode.getLogoUrl().getUrl()!=null&&!qrCode.getLogoUrl().getUrl().isEmpty()){
-            BufferedImage whiteBox=createWhiteBox(qrImage);
-            addWhiteBox(qrImage, whiteBox);
-            BufferedImage resizedLogo= resizeImage(qrCode.getLogoUrl().getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
-            BufferedImage imgWithLogo=addLogoToCenter(qrImage, resizedLogo);
-            qrImage=imgWithLogo;
-            
+        if (qrCode.getLogoUrl() != null && qrCode.getLogoUrl().getUrl() != null && !qrCode.getLogoUrl().getUrl().isEmpty()) {
+            String logoUrl = qrCode.getLogoUrl().getUrl();
+            if (isValidUrl(logoUrl)) {
+                BufferedImage whiteBox = createWhiteBox(qrImage);
+                addWhiteBox(qrImage, whiteBox);
+                BufferedImage resizedLogo = resizeImage(qrCode.getLogoUrl().getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
+                BufferedImage imgWithLogo = addLogoToCenter(qrImage, resizedLogo);
+                qrImage = imgWithLogo;
+            } else {
+                throw new InvalidURLException("Invalid URL format" );
+            }
         }
-
-        if (qrCode.getCustomBord() != null
-        &&qrCode.getCustomBord().getBorderColor()!=null&&!qrCode.getCustomBord().getBorderColor().isEmpty()&&
-        qrCode.getCustomBord().getBordSizes()!=null&&!qrCode.getCustomBord().getBordSizes().isEmpty()) {
-            
-            ArrayList<Integer> listaBordi= qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
-            int top= listaBordi.get(0);
-            int right=listaBordi.get(1);
-            int bottom= listaBordi.get(2);
-            int left= listaBordi.get(3);
-            qrImage=addBorder(qrImage, top,right,bottom, left, qrCode.getCustomBord().getBorderColorS());
-            
-
-            if(qrCode.getCustomBord().getIconUrl()!=null&&!qrCode.getCustomBord().getIconUrl().getUrl().isEmpty()){
+        if (isValidColor(qrCode.getCustomBord().getBorderColor())) {
+        
+            ArrayList<Integer> listaBordi = qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
+            int top = listaBordi.get(0);
+            int right = listaBordi.get(1);
+            int bottom = listaBordi.get(2);
+            int left = listaBordi.get(3);
+            qrImage = addBorder(qrImage, top, right, bottom, left, qrCode.getCustomBord().getBorderColorS());
+    
+            if (qrCode.getCustomBord().getIconUrl() != null &&
+                qrCode.getCustomBord().getIconUrl().getUrl() != null &&
+                !qrCode.getCustomBord().getIconUrl().getUrl().isEmpty()) {
                 
-                BufferedImage iconImg=qrCode.getCustomBord().getIconUrl().getImgByUrl();
-                int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
-                BufferedImage resizedIconImg=resizeImage(iconImg, targetWidth, bottom);
-                int iconX=left;
-                int iconY=qrImage.getHeight()-resizedIconImg.getHeight();
-                BufferedImage imageWithIcon = new BufferedImage(qrImage.getWidth(), qrImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g = imageWithIcon.createGraphics();
-                g.drawImage(qrImage, 0, 0, null);
-                g.drawImage(resizedIconImg, iconX, iconY, null);
-                g.dispose();
-                qrImage=imageWithIcon;
+                String iconUrl = qrCode.getCustomBord().getIconUrl().getUrl();
+                
+                if (isValidUrl(iconUrl)) {
+                    BufferedImage iconImg = qrCode.getCustomBord().getIconUrl().getImgByUrl();
+                    int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
+                    BufferedImage resizedIconImg = resizeImage(iconImg, targetWidth, bottom);
+                    int iconX = left;
+                    int iconY = qrImage.getHeight() - resizedIconImg.getHeight();
+                    BufferedImage imageWithIcon = new BufferedImage(qrImage.getWidth(), qrImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = imageWithIcon.createGraphics();
+                    g.drawImage(qrImage, 0, 0, null);
+                    g.drawImage(resizedIconImg, iconX, iconY, null);
+                    g.dispose();
+                    qrImage = imageWithIcon;
+                } else {
+                    throw new InvalidURLException("Invalid URL format for iconURL field");
+                }
             }
-            if (qrCode.getCustomText()!=null&&!qrCode.getCustomText().getText().isEmpty()) {
+            if (qrCode.getCustomText() != null && !qrCode.getCustomText().getText().isEmpty()) {
                 CustomText t = qrCode.getCustomText();
-                if(t.getPosition().equals("bottom")&&bottom!=0){
-                    if(bottom>=t.getFontSize()){
-                        BufferedImage b=addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
-                        qrImage=b;
+                if (t.getText() != null && !t.getText().isEmpty()) {
+                    if (t.getPosition().equals("bottom") && bottom != 0) {
+                        if (bottom >= t.getFontSize()) {
+                            BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
+                            qrImage = b;
+                        } else if (bottom < t.getFontSize()) {
+                            t.setFontSize(bottom);
+                            BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
+                            qrImage = b;
+                        }
                     }
-                    else if(bottom<t.getFontSize()){
-                        t.setFontSize(bottom);
-                        BufferedImage b=addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());                
-                        qrImage=b;
-                    }                                            
-                }
-                if(t.getPosition().equals("top")&&bottom!=0){
-                    if(top>=t.getFontSize()){
-                        BufferedImage b=addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
-                        qrImage=b;
-                    }
-                    else if(top<t.getFontSize()){
-                        t.setFontSize(top);
-                        BufferedImage b=addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
-                        qrImage=b;
+                    if (t.getPosition().equals("top") && bottom != 0) {
+                        if (top >= t.getFontSize()) {
+                            BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
+                            qrImage = b;
+                        } else if (top < t.getFontSize()) {
+                            t.setFontSize(top);
+                            BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
+                            qrImage = b;
+                        }
                     }
                 }
             }
-        }
-        
-        
+        } else {
+            throw new InvalidColorException("Invalid border color code");
+        }        
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
         return pngOutputStream.toByteArray();
