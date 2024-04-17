@@ -3,7 +3,7 @@
     "padding":"2",
     "customBord" : {
         "borderColor": "#0000FF",
-        "bordSizes": "20 30 20 20",
+        "bordSizes": "20 20 80 20",
         "iconUrl":{
             "url":"https://content.wepik.com/statics/22818825/preview-page3.jpg"
         }
