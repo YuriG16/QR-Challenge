@@ -18,10 +18,10 @@ import com.google.zxing.common.BitMatrix;
 import it.twentyfive.demoqrcode.model.CustomColor;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
-import it.twentyfive.demoqrcode.utils.Exceptions.InvalidColorException;
-import it.twentyfive.demoqrcode.utils.Exceptions.InvalidInputException;
-import it.twentyfive.demoqrcode.utils.Exceptions.InvalidNumberException;
-import it.twentyfive.demoqrcode.utils.Exceptions.InvalidURLException;
+import it.twentyfive.demoqrcode.utils.exceptions.InvalidColorException;
+import it.twentyfive.demoqrcode.utils.exceptions.InvalidInputException;
+import it.twentyfive.demoqrcode.utils.exceptions.InvalidNumberException;
+import it.twentyfive.demoqrcode.utils.exceptions.InvalidURLException;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -84,6 +84,7 @@ public class MethodUtils {
                 throw new InvalidURLException("Invalid URL format" );
             }
         }
+        
         if (isValidColor(qrCode.getCustomBord().getBorderColor()) == false) {
             throw new InvalidColorException("Border color not valid");
         }
@@ -147,8 +148,6 @@ public class MethodUtils {
                 }
             }
         } 
-        // else {
-        //     //throw new InvalidColorException("Invalid border color code");
                
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);

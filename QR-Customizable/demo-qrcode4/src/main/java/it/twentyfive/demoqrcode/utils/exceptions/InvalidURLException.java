@@ -1,4 +1,4 @@
-package it.twentyfive.demoqrcode.utils.Exceptions;
+package it.twentyfive.demoqrcode.utils.exceptions;
 
 public class InvalidURLException extends RuntimeException {
     public InvalidURLException() {

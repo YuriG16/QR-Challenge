@@ -1,4 +1,4 @@
-package it.twentyfive.demoqrcode.utils.Exceptions;
+package it.twentyfive.demoqrcode.utils.exceptions;
 
 public class InvalidNumberException extends RuntimeException {
     public InvalidNumberException() {
