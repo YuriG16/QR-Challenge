@@ -84,7 +84,10 @@ public class MethodUtils {
                 throw new InvalidURLException("Invalid URL format" );
             }
         }
-        if (isValidColor(qrCode.getCustomBord().getBorderColor())) {
+        if (isValidColor(qrCode.getCustomBord().getBorderColor()) == false) {
+            throw new InvalidColorException("Border color not valid");
+        }
+        else {
         
             ArrayList<Integer> listaBordi = qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
             int top = listaBordi.get(0);
@@ -143,9 +146,10 @@ public class MethodUtils {
                     throw new InvalidInputException("The only inputs allowed are 'bottom' and 'top'");
                 }
             }
-        } else {
-            throw new InvalidColorException("Invalid border color code");
-        }        
+        } 
+        // else {
+        //     //throw new InvalidColorException("Invalid border color code");
+               
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
         return pngOutputStream.toByteArray();
