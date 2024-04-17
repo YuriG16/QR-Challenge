@@ -13,6 +13,8 @@ public class CustomText {
     private String text;
     private int fontSize;
     private String fontColor;
+    private String position;
+    private int offset;
 
     public Color getFontColor(){
         return Color.decode(fontColor);
