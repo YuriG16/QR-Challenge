@@ -15,9 +15,11 @@ import com.google.zxing.client.j2se.MatrixToImageConfig;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 
+import it.twentyfive.demoqrcode.model.CustomBord;
 import it.twentyfive.demoqrcode.model.CustomColor;
 import it.twentyfive.demoqrcode.model.CustomQrRequest;
 import it.twentyfive.demoqrcode.model.CustomText;
+import it.twentyfive.demoqrcode.model.LogoUrl;
 import it.twentyfive.demoqrcode.utils.exceptions.InvalidColorException;
 import it.twentyfive.demoqrcode.utils.exceptions.InvalidInputException;
 import it.twentyfive.demoqrcode.utils.exceptions.InvalidNumberException;
@@ -71,40 +73,40 @@ public class MethodUtils {
             BufferedImage qr=MatrixToImageWriter.toBufferedImage(bitMatrix, config);
             qrImage=qr;
         }
-        
-        if (qrCode.getLogoUrl() != null && qrCode.getLogoUrl().getUrl() != null && !qrCode.getLogoUrl().getUrl().isEmpty()) {
+        LogoUrl logo = qrCode.getLogoUrl();
+        if (logo != null && logo.getUrl() != null && !logo.getUrl().isEmpty()) {
             String logoUrl = qrCode.getLogoUrl().getUrl();
             if (isValidUrl(logoUrl)) {
                 BufferedImage whiteBox = createWhiteBox(qrImage);
                 addWhiteBox(qrImage, whiteBox);
-                BufferedImage resizedLogo = resizeImage(qrCode.getLogoUrl().getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
+                BufferedImage resizedLogo = resizeImage(logo.getImgByUrl(), whiteBox.getWidth(), whiteBox.getHeight());
                 BufferedImage imgWithLogo = addLogoToCenter(qrImage, resizedLogo);
                 qrImage = imgWithLogo;
             } else {
                 throw new InvalidURLException("Invalid URL format" );
             }
         }
-        
-        if (isValidColor(qrCode.getCustomBord().getBorderColor()) == false) {
+        CustomBord customBord = qrCode.getCustomBord();
+        if (!isValidColor(customBord.getBorderColor())) {
             throw new InvalidColorException("Border color not valid");
         }
         else {
         
-            ArrayList<Integer> listaBordi = qrCode.getCustomBord().setBordSizes(qrCode.getCustomBord().getBordSizes());
+            ArrayList<Integer> listaBordi = customBord.setBordSizes(customBord.getBordSizes());
             int top = listaBordi.get(0);
             int right = listaBordi.get(1);
             int bottom = listaBordi.get(2);
             int left = listaBordi.get(3);
-            qrImage = addBorder(qrImage, top, right, bottom, left, qrCode.getCustomBord().getBorderColorS());
+            qrImage = addBorder(qrImage, top, right, bottom, left, customBord.getBorderColorS());
     
-            if (qrCode.getCustomBord().getIconUrl() != null &&
-                qrCode.getCustomBord().getIconUrl().getUrl() != null &&
-                !qrCode.getCustomBord().getIconUrl().getUrl().isEmpty()) {
+            if (customBord.getIconUrl() != null &&
+                customBord.getIconUrl().getUrl() != null &&
+                !customBord.getIconUrl().getUrl().isEmpty()) {
                 
-                String iconUrl = qrCode.getCustomBord().getIconUrl().getUrl();
+                String iconUrl = customBord.getIconUrl().getUrl();
                 
                 if (isValidUrl(iconUrl)) {
-                    BufferedImage iconImg = qrCode.getCustomBord().getIconUrl().getImgByUrl();
+                    BufferedImage iconImg = customBord.getIconUrl().getImgByUrl();
                     int targetWidth = (int)((double)iconImg.getWidth() / iconImg.getHeight() * bottom);
                     BufferedImage resizedIconImg = resizeImage(iconImg, targetWidth, bottom);
                     int iconX = left;
@@ -119,8 +121,8 @@ public class MethodUtils {
                     throw new InvalidURLException("Invalid URL format for iconURL field");
                 }
             }
-            if (qrCode.getCustomText() != null && !qrCode.getCustomText().getText().isEmpty()) {
-                CustomText t = qrCode.getCustomText();
+            CustomText t = qrCode.getCustomText();
+            if (t != null && !t.getText().isEmpty()) {
                 if (t.getText() != null && !t.getText().isEmpty()) {
                     if (t.getPosition().equals("bottom") && bottom != 0) {
                         if (bottom >= t.getFontSize()) {
@@ -187,22 +189,6 @@ public class MethodUtils {
             return imageWithBorder;
     }
 
-    
-    /*public static BufferedImage addTextToBorderBottom(BufferedImage img, CustomText t, int borderWidth) {
-        Graphics2D g = img.createGraphics();
-        g.setColor(t.getFontColor());
-        Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
-        g.setFont(font);
-        FontMetrics metrics = g.getFontMetrics(font);
-        int textWidth = metrics.stringWidth(t.getText());                    
-        int charHeight = metrics.getAscent() - metrics.getDescent();                       
-        int x = (img.getWidth() - textWidth) / 2;
-        int y = img.getHeight()-borderWidth/2+(charHeight/2);
-        g.drawString(t.getText(), x, y);
-        g.dispose();
-    
-        return img;
-    }*/
     public static BufferedImage addTextToBorderBottomWithOffset(BufferedImage img, CustomText t, int borderWidth, int offset) {
         Graphics2D g = img.createGraphics();
         g.setColor(t.getFontColor());
@@ -223,21 +209,7 @@ public class MethodUtils {
     
         return img;
     }
-    /*public static BufferedImage addTextToBorderTop(BufferedImage img, CustomText t, int borderWidth) {
-        Graphics2D g = img.createGraphics();
-        g.setColor(t.getFontColor());
-        Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
-        g.setFont(font);
-        FontMetrics metrics = g.getFontMetrics(font);
-        int textWidth = metrics.stringWidth(t.getText());                    
-        int charHeight = metrics.getAscent() - metrics.getDescent();                       
-        int x = (img.getWidth() - textWidth) / 2;
-        int y = borderWidth/2+(charHeight/2);
-        g.drawString(t.getText(), x, y);
-        g.dispose();
-    
-        return img;
-    }*/
+
     public static BufferedImage addTextToBorderTopWithOffset(BufferedImage img, CustomText t, int borderWidth, int offset) {
         Graphics2D g = img.createGraphics();
         g.setColor(t.getFontColor());
@@ -288,10 +260,10 @@ public class MethodUtils {
     public static BufferedImage createWhiteBox(BufferedImage img) {
         int whiteBoxSize = (int) (Math.min(img.getWidth(), img.getHeight()) * 0.135);
     
-        BufferedImage overlayImage = new BufferedImage(whiteBoxSize, whiteBoxSize, BufferedImage.TYPE_INT_ARGB); // Correzione qui
+        BufferedImage overlayImage = new BufferedImage(whiteBoxSize, whiteBoxSize, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = overlayImage.createGraphics();
         graphics.setColor(Color.WHITE);
-        graphics.fillRect(0, 0, whiteBoxSize, whiteBoxSize); // Correzione qui
+        graphics.fillRect(0, 0, whiteBoxSize, whiteBoxSize);
         graphics.dispose();
     
         return overlayImage;
