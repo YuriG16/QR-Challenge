@@ -86,19 +86,29 @@ public class MethodUtils {
                 throw new InvalidURLException("Invalid URL format" );
             }
         }
+        //customBord.getBordSizes()!=null&&!customBord.getBordSizes().isEmpty()&&
         CustomBord customBord = qrCode.getCustomBord();
-        if (!isValidColor(customBord.getBorderColor())) {
-            throw new InvalidColorException("Border color not valid");
-        }
-        else {
-        
-            ArrayList<Integer> listaBordi = customBord.setBordSizes(customBord.getBordSizes());
-            int top = listaBordi.get(0);
-            int right = listaBordi.get(1);
-            int bottom = listaBordi.get(2);
-            int left = listaBordi.get(3);
-            qrImage = addBorder(qrImage, top, right, bottom, left, customBord.getBorderColorS());
-    
+        int top = 0;
+        int right = 0;
+        int bottom = 0;
+        int left = 0;
+        if (customBord!=null) {
+            if (customBord.getBorderColor()!=null&&!customBord.getBorderColor().isEmpty()
+                &&!isValidColor(customBord.getBorderColor())) {
+                    throw new InvalidColorException();
+                }else if (customBord.getBordSizes()!=null&&!customBord.getBordSizes().isEmpty()) {
+                    ArrayList<Integer> listaBordi = customBord.setBordSizes(customBord.getBordSizes());
+                    top = listaBordi.get(0);
+                    right = listaBordi.get(1);
+                    bottom = listaBordi.get(2);
+                    left = listaBordi.get(3);
+                    qrImage = addBorder(qrImage, top, right, bottom, left, customBord.getBorderColorS());
+                
+                } else {
+                    qrImage=qrImage;
+                } // gestire il default -> non considerare bordColor e size
+                
+                    
             if (customBord.getIconUrl() != null &&
                 customBord.getIconUrl().getUrl() != null &&
                 !customBord.getIconUrl().getUrl().isEmpty()) {
@@ -121,35 +131,39 @@ public class MethodUtils {
                     throw new InvalidURLException("Invalid URL format for iconURL field");
                 }
             }
+        }
             CustomText t = qrCode.getCustomText();
-            if (t != null && !t.getText().isEmpty()) {
-                if (t.getText() != null && !t.getText().isEmpty()) {
-                    if (t.getPosition().equals("bottom") && bottom != 0) {
-                        if (bottom >= t.getFontSize()) {
-                            BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
-                            qrImage = b;
-                        } else if (bottom < t.getFontSize()) {
-                            t.setFontSize(bottom);
-                            BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
-                            qrImage = b;
+            if (t != null&&
+                t.getText() != null && !t.getText().isEmpty()) {
+                    if (t.getFontColor()!=null&&!t.getFontColor().isEmpty()&&isValidColor(t.getFontColor())) {
+                        if (t.getPosition().equals("bottom") && bottom != 0) {
+                            if (bottom >= t.getFontSize()) {
+                                BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
+                                qrImage = b;
+                            } else if (bottom < t.getFontSize()) {
+                                t.setFontSize(bottom);
+                                BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
+                                qrImage = b;
+                            }
                         }
-                    }
-                    if (t.getPosition().equals("top") && bottom != 0) {
-                        if (top >= t.getFontSize()) {
-                            BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
-                            qrImage = b;
-                        } else if (top < t.getFontSize()) {
-                            t.setFontSize(top);
-                            BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
-                            qrImage = b;
+                        if (t.getPosition().equals("top") && bottom != 0) {
+                            if (top >= t.getFontSize()) {
+                                BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
+                                qrImage = b;
+                            } else if (top < t.getFontSize()) {
+                                t.setFontSize(top);
+                                BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
+                                qrImage = b;
+                            }
                         }
+                    } else {
+                        throw new InvalidColorException("Color is not valid");
                     }
-                }
+                    
                 if(!t.getPosition().equals("bottom")&&!t.getPosition().equals("top")){
                     throw new InvalidInputException("The only inputs allowed are 'bottom' and 'top'");
                 }
-            }
-        } 
+            } 
                
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
@@ -191,7 +205,7 @@ public class MethodUtils {
 
     public static BufferedImage addTextToBorderBottomWithOffset(BufferedImage img, CustomText t, int borderWidth, int offset) {
         Graphics2D g = img.createGraphics();
-        g.setColor(t.getFontColor());
+        g.setColor(t.getFontColorS());
         Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
         g.setFont(font);
         FontMetrics metrics = g.getFontMetrics(font);
@@ -212,7 +226,7 @@ public class MethodUtils {
 
     public static BufferedImage addTextToBorderTopWithOffset(BufferedImage img, CustomText t, int borderWidth, int offset) {
         Graphics2D g = img.createGraphics();
-        g.setColor(t.getFontColor());
+        g.setColor(t.getFontColorS());
         Font font = new Font("Arial", Font.PLAIN, t.getFontSize());
         g.setFont(font);
         FontMetrics metrics = g.getFontMetrics(font);

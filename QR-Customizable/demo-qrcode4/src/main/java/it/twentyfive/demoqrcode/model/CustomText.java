@@ -16,7 +16,7 @@ public class CustomText {
     private String position;
     private int offset;
 
-    public Color getFontColor(){
+    public Color getFontColorS(){
         return Color.decode(fontColor);
     }
 }
