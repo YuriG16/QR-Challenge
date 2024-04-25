@@ -92,9 +92,8 @@ public class MethodUtils {
         int right = 0;
         int bottom = 0;
         int left = 0;
-        if (customBord!=null) {
-            if (customBord.getBorderColor()!=null&&!customBord.getBorderColor().isEmpty()
-                &&!isValidColor(customBord.getBorderColor())) {
+        if (customBord!=null&&customBord.getBorderColor()!=null&&!customBord.getBorderColor().isEmpty()) {
+            if (!isValidColor(customBord.getBorderColor())) {
                     throw new InvalidColorException();
                 }else if (customBord.getBordSizes()!=null&&!customBord.getBordSizes().isEmpty()) {
                     ArrayList<Integer> listaBordi = customBord.setBordSizes(customBord.getBordSizes());
