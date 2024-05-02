@@ -118,37 +118,36 @@ public class MethodUtils {
                     throw new InvalidURLException("Invalid URL format for iconURL field");
                 }
             }
-            if (qrCode.getCustomText() != null && !qrCode.getCustomText().getText().isEmpty()) {
+            if (qrCode.getCustomText() != null) {
                 CustomText t = qrCode.getCustomText();
-                if (t.getText() != null && !t.getText().isEmpty()) {
+                if (t.getPosition() != null && (t.getPosition().equals("bottom") || t.getPosition().equals("top"))) {
+                    int fontSize = t.getFontSize() != 0 ? t.getFontSize() : 20;
+                    int offset = t.getOffset() != 0 ? t.getOffset() : 0;
+            
                     if (t.getPosition().equals("bottom") && bottom != 0) {
-                        if (bottom >= t.getFontSize()) {
-                            BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
+                        if (bottom >= fontSize) {
+                            BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, offset);
                             qrImage = b;
-                        } else if (bottom < t.getFontSize()) {
+                        } else {
                             t.setFontSize(bottom);
-                            BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, t.getOffset());
+                            BufferedImage b = addTextToBorderBottomWithOffset(qrImage, t, bottom, offset);
                             qrImage = b;
                         }
-                    }
-                    if (t.getPosition().equals("top") && bottom != 0) {
-                        if (top >= t.getFontSize()) {
-                            BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
+                    } else if (t.getPosition().equals("top") && top != 0) {
+                        if (top >= fontSize) {
+                            BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, offset);
                             qrImage = b;
-                        } else if (top < t.getFontSize()) {
+                        } else {
                             t.setFontSize(top);
-                            BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, t.getOffset());
+                            BufferedImage b = addTextToBorderTopWithOffset(qrImage, t, top, offset);
                             qrImage = b;
                         }
                     }
-                }
-                if(!t.getPosition().equals("bottom")&&!t.getPosition().equals("top")){
-                    throw new InvalidInputException("The only inputs allowed are 'bottom' and 'top'");
+                } else {
+                    throw new InvalidInputException("Insert a valid 'customText' field with following parameters:'text','fontSize','fontColor','position'(top or bottom),'offset'");
                 }
             }
         } 
-        // else {
-        //     //throw new InvalidColorException("Invalid border color code");
                
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         ImageIO.write(qrImage, "PNG", pngOutputStream);
